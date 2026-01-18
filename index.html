@@ -79,10 +79,11 @@
             margin-bottom: 16px;
             font-weight: 800;
             letter-spacing: -0.025em;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-secondary) 100%);
+            background: linear-gradient(135deg, #ef4444 0%, #f59e0b 50%, var(--accent-secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            text-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
         }
 
         .header p {
@@ -537,6 +538,234 @@
             font-size: 16px;
         }
 
+        .players-section {
+            margin-top: 32px;
+            background: var(--bg-tertiary);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-primary);
+        }
+
+        .players-section h3 {
+            color: var(--accent-secondary);
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .players-section h3::before {
+            content: '👥';
+            font-size: 20px;
+        }
+
+        .players-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        .players-table th,
+        .players-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .players-table th {
+            background: var(--bg-card);
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .players-table tr:hover {
+            background: var(--bg-card);
+        }
+
+        .add-to-team-btn {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .add-to-team-btn:hover {
+            background: linear-gradient(135deg, #059669, var(--success));
+            transform: translateY(-1px);
+        }
+
+        .add-to-team-btn:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .team-section {
+            margin-top: 32px;
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border-primary);
+            position: relative;
+        }
+
+        .team-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--success), transparent);
+        }
+
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .team-title {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .team-title::before {
+            content: '🎯';
+            font-size: 24px;
+        }
+
+        .team-status {
+            padding: 8px 16px;
+            border-radius: var(--radius-lg);
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .team-status.online {
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: white;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .team-status.offline {
+            background: linear-gradient(135deg, var(--error), #dc2626);
+            color: white;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .team-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .team-member {
+            background: var(--bg-tertiary);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .team-member:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--accent-primary);
+        }
+
+        .team-member-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .team-member-name {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .team-member-id {
+            color: var(--text-muted);
+            font-size: 12px;
+            font-family: 'SF Mono', 'Monaco', monospace;
+        }
+
+        .team-member-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-indicator.online {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+        }
+
+        .status-indicator.offline {
+            background: var(--text-muted);
+        }
+
+        .remove-btn {
+            background: linear-gradient(135deg, var(--error), #dc2626);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .remove-btn:hover {
+            background: linear-gradient(135deg, #dc2626, var(--error));
+            transform: translateY(-1px);
+        }
+
+        .empty-team {
+            text-align: center;
+            padding: 48px;
+            color: var(--text-muted);
+            font-size: 16px;
+        }
+
+        .empty-team::before {
+            content: '🎯';
+            display: block;
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
         @keyframes slideUp {
             from { 
                 opacity: 0; 
@@ -624,8 +853,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🦀 Rust Server Dashboard</h1>
-            <p>Live server monitoring powered by BattleMetrics</p>
+            <h1>⚡ RUST COMMAND CENTER</h1>
+            <p>Elite server monitoring & team tracking system</p>
         </div>
 
         <div id="tokenSection" class="token-input-container" style="display: none;">
@@ -675,6 +904,34 @@
                     <h3>Player Count History (24 hours)</h3>
                     <canvas id="playerChart"></canvas>
                 </div>
+                <div class="players-section" id="playersSection" style="display: none;">
+                    <h3>Active Players</h3>
+                    <table class="players-table">
+                        <thead>
+                            <tr>
+                                <th>Player Name</th>
+                                <th>Player ID</th>
+                                <th>Steam ID</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playersTableBody">
+                            <tr>
+                                <td colspan="4" class="loading">Loading players...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="team-section" id="teamSection" style="display: none;">
+                <div class="team-header">
+                    <div class="team-title">My Team</div>
+                    <div class="team-status" id="teamStatus">Offline</div>
+                </div>
+                <div class="team-list" id="teamList">
+                    <div class="empty-team">No team members added yet. Add players from server details to build your team.</div>
+                </div>
             </div>
         </div>
     </div>
@@ -685,6 +942,7 @@
         let selectedServer = null;
         let playerChart = null;
         let refreshInterval = null;
+        let myTeam = JSON.parse(localStorage.getItem('rustTeam') || '[]');
 
         // Initialize app
         function init() {
@@ -698,6 +956,13 @@
 
             // Setup search
             document.getElementById('searchInput').addEventListener('input', filterServers);
+            
+            // Show team section if team has members
+            if (myTeam.length > 0) {
+                document.getElementById('teamSection').style.display = 'block';
+                renderTeam();
+                updateTeamStatus();
+            }
         }
 
         // Save API token
@@ -863,6 +1128,197 @@
             
             // Load player history chart
             await loadPlayerHistory(serverId);
+            
+            // Load active players
+            await loadActivePlayers(serverId);
+        }
+
+        // Load active players for a server
+        async function loadActivePlayers(serverId) {
+            const playersSection = document.getElementById('playersSection');
+            const playersTableBody = document.getElementById('playersTableBody');
+            
+            try {
+                playersSection.style.display = 'block';
+                playersTableBody.innerHTML = '<tr><td colspan="4" class="loading">Loading players...</td></tr>';
+                
+                const currentTime = new Date().toISOString();
+                const response = await fetch(`/api/proxy.js?url=https://api.battlemetrics.com/servers/${serverId}/relationships/sessions?include=player,identifier&filter[at]=${encodeURIComponent(currentTime)}&token=${currentToken}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const sessions = data.data || [];
+                const included = data.included || [];
+                
+                // Extract players and their identifiers
+                const players = sessions.map(session => {
+                    const player = included.find(item => item.type === 'player' && item.id === session.relationships.player.data.id);
+                    const identifiers = included.filter(item => item.type === 'identifier' && item.relationships.player?.data?.id === session.relationships.player.data.id);
+                    
+                    if (!player) return null;
+                    
+                    const steamIdentifier = identifiers.find(id => id.attributes.type === 'steamID');
+                    
+                    return {
+                        id: player.id,
+                        name: player.attributes.name || 'Unknown',
+                        steamId: steamIdentifier ? steamIdentifier.attributes.identifier : 'N/A'
+                    };
+                }).filter(Boolean);
+
+                renderPlayersTable(players);
+            } catch (error) {
+                console.error('Error loading active players:', error);
+                playersTableBody.innerHTML = '<tr><td colspan="4" class="loading">Failed to load players</td></tr>';
+            }
+        }
+
+        // Render players table
+        function renderPlayersTable(players) {
+            const playersTableBody = document.getElementById('playersTableBody');
+            
+            if (players.length === 0) {
+                playersTableBody.innerHTML = '<tr><td colspan="4" class="loading">No active players found</td></tr>';
+                return;
+            }
+
+            playersTableBody.innerHTML = players.map(player => {
+                const isInTeam = myTeam.some(teamMember => teamMember.id === player.id);
+                
+                return `
+                    <tr>
+                        <td>${escapeHtml(player.name)}</td>
+                        <td><code style="color: var(--text-muted); font-size: 12px;">${player.id}</code></td>
+                        <td><code style="color: var(--text-muted); font-size: 12px;">${player.steamId}</code></td>
+                        <td>
+                            <button class="add-to-team-btn" onclick="addToTeam('${player.id}', '${escapeHtml(player.name)}', '${player.steamId}')" ${isInTeam ? 'disabled' : ''}>
+                                ${isInTeam ? 'In Team' : 'Add to Team'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Add player to team
+        function addToTeam(playerId, playerName, steamId) {
+            // Check if already in team
+            if (myTeam.some(member => member.id === playerId)) {
+                return;
+            }
+
+            const newMember = {
+                id: playerId,
+                name: playerName,
+                steamId: steamId,
+                status: 'unknown'
+            };
+
+            myTeam.push(newMember);
+            localStorage.setItem('rustTeam', JSON.stringify(myTeam));
+            
+            // Show team section
+            document.getElementById('teamSection').style.display = 'block';
+            
+            // Re-render team and update status
+            renderTeam();
+            updateTeamStatus();
+            
+            // Update players table to show button as disabled
+            if (selectedServer) {
+                loadActivePlayers(selectedServer.id);
+            }
+        }
+
+        // Remove player from team
+        function removeFromTeam(playerId) {
+            myTeam = myTeam.filter(member => member.id !== playerId);
+            localStorage.setItem('rustTeam', JSON.stringify(myTeam));
+            
+            renderTeam();
+            updateTeamStatus();
+            
+            // Hide team section if empty
+            if (myTeam.length === 0) {
+                document.getElementById('teamSection').style.display = 'none';
+            }
+            
+            // Update players table if showing
+            if (selectedServer) {
+                loadActivePlayers(selectedServer.id);
+            }
+        }
+
+        // Render team list
+        function renderTeam() {
+            const teamList = document.getElementById('teamList');
+            
+            if (myTeam.length === 0) {
+                teamList.innerHTML = '<div class="empty-team">No team members added yet. Add players from server details to build your team.</div>';
+                return;
+            }
+
+            teamList.innerHTML = myTeam.map(member => `
+                <div class="team-member">
+                    <div class="team-member-info">
+                        <div>
+                            <div class="team-member-name">${escapeHtml(member.name)}</div>
+                            <div class="team-member-id">ID: ${member.id}</div>
+                        </div>
+                    </div>
+                    <div class="team-member-status">
+                        <span class="status-indicator ${member.status}"></span>
+                        <span>${member.status === 'online' ? 'Online' : 'Offline'}</span>
+                        <button class="remove-btn" onclick="removeFromTeam('${member.id}')">Remove</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Update team member statuses
+        async function updateTeamStatus() {
+            if (myTeam.length === 0) return;
+
+            let onlineCount = 0;
+
+            // Update each team member's status
+            for (const member of myTeam) {
+                try {
+                    const response = await fetch(`/api/proxy.js?url=https://api.battlemetrics.com/players/${member.id}?include=server&token=${currentToken}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const server = data.included?.find(item => item.type === 'server');
+                        
+                        // Player is online if they have an active server
+                        member.status = server ? 'online' : 'offline';
+                        if (member.status === 'online') {
+                            onlineCount++;
+                        }
+                    } else {
+                        member.status = 'offline';
+                    }
+                } catch (error) {
+                    console.error('Error checking player status:', error);
+                    member.status = 'offline';
+                }
+            }
+
+            // Update team status indicator
+            const teamStatusElement = document.getElementById('teamStatus');
+            if (onlineCount > 0) {
+                teamStatusElement.textContent = `Online (${onlineCount}/${myTeam.length})`;
+                teamStatusElement.className = 'team-status online';
+            } else {
+                teamStatusElement.textContent = 'Offline';
+                teamStatusElement.className = 'team-status offline';
+            }
+
+            // Re-render team to show updated statuses
+            renderTeam();
         }
 
         // Load player history for chart
@@ -956,6 +1412,9 @@
             
             refreshInterval = setInterval(() => {
                 loadServers();
+                if (myTeam.length > 0) {
+                    updateTeamStatus();
+                }
             }, 60000); // 60 seconds
         }
 
