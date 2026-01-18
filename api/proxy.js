@@ -1,8 +1,10 @@
-// Improved BattleMetrics Proxy for Vercel - uses fetch for reliability
+// Fixed BattleMetrics Proxy for Vercel (CommonJS format)
+const https = require('https');
+
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -18,15 +20,18 @@ module.exports = async (req, res) => {
         return res.status(400).json({ error: 'Missing url or token' });
     }
 
+    // No URL validation - frontend only sends BattleMetrics URLs
+
     try {
-        const response = await fetch(decodeURIComponent(url), {
+        const decodedUrl = decodeURIComponent(url);
+        const response = await fetch(decodedUrl, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/json',
                 'User-Agent': 'TrickyDashboard/1.0'
             },
-            timeout: 15000 // 15s timeout
+            timeout: 15000
         });
 
         const data = await response.json();
