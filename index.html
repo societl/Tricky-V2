@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rust Server Dashboard - BattleMetrics</title>
+    <title>Rust Server Dashboard | Player Tracking System</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -12,1372 +12,910 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --bg-primary: #0a0e17;
-            --bg-secondary: #111827;
-            --bg-tertiary: #1e293b;
-            --bg-card: #1f2937;
-            --border-primary: #334155;
-            --border-secondary: #475569;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #94a3b8;
-            --accent-primary: #3b82f6;
-            --accent-secondary: #60a5fa;
-            --accent-hover: #2563eb;
-            --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            --radius-sm: 6px;
-            --radius-md: 8px;
-            --radius-lg: 12px;
-            --radius-xl: 16px;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', system-ui, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            font-size: 15px;
-            font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #00ff00;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1280px;
+            max-width: 1400px;
             margin: 0 auto;
-            padding: 32px 24px;
+            padding: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 48px;
-            position: relative;
-        }
-
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: -24px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 120px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
-            border-radius: 2px;
-        }
-
-        .header h1 {
-            font-size: 3.5rem;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            font-weight: 800;
-            letter-spacing: -0.025em;
-            background: linear-gradient(135deg, #ef4444 0%, #f59e0b 50%, var(--accent-secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
-        }
-
-        .header p {
-            color: var(--text-muted);
-            font-size: 1.125rem;
-            font-weight: 500;
-            letter-spacing: 0.025em;
-        }
-
-        .token-warning {
-            background: linear-gradient(135deg, var(--warning), #dc2626);
-            color: white;
-            padding: 20px 24px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 32px;
-            font-weight: 600;
-            text-align: center;
-            font-size: 15px;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid rgba(245, 158, 11, 0.2);
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px solid #0066ff;
+            background: linear-gradient(135deg, #001133 0%, #000511 100%);
             position: relative;
             overflow: hidden;
         }
 
-        .token-warning::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        }
-
-        .token-input-container {
-            background: var(--bg-secondary);
-            padding: 32px;
-            border-radius: var(--radius-xl);
-            margin-bottom: 32px;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border-primary);
-            position: relative;
-        }
-
-        .token-input-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
-            opacity: 0.5;
-        }
-
-        .token-input {
-            width: 100%;
-            padding: 16px 20px;
-            background: var(--bg-tertiary);
-            border: 2px solid var(--border-primary);
-            color: var(--text-primary);
-            border-radius: var(--radius-md);
-            font-size: 15px;
-            margin-bottom: 20px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Fira Code', monospace;
-        }
-
-        .token-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), var(--shadow-lg);
-            background: var(--bg-card);
-        }
-
-        .token-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: var(--radius-md);
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-md);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
+        .header::before {
+            content: "";
             position: absolute;
             top: 0;
             left: -100%;
             width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #0066ff, transparent);
+            animation: scan 3s linear infinite;
         }
 
-        .btn:hover::before {
-            left: 100%;
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header h1 {
+            color: #0066ff;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #0066ff;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #00ccff;
+            font-size: 0.9em;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #0066ff;
+            margin-bottom: 20px;
+            background: #001133;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: #000511;
+            color: #00ccff;
+            cursor: pointer;
+            border: 1px solid #0066ff;
+            border-bottom: none;
+            margin-right: 2px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: #002244;
+            color: #00ff00;
+        }
+
+        .tab.active {
+            background: #0066ff;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .tab.active::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #0066ff;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .panel {
+            background: #001133;
+            border: 2px solid #0066ff;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            height: 1px;
+            background: linear-gradient(90deg, #0066ff, #00ccff, #0066ff);
+            animation: borderGlow 2s linear infinite;
+        }
+
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .panel h2 {
+            color: #0066ff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 5px #0066ff;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            background: #000511;
+            border: 1px solid #0066ff;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #00ccff;
+            box-shadow: 0 0 5px #00ccff;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: #0066ff;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            transition: all 0.3s;
         }
 
         .btn:hover {
-            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-primary));
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            background: #00ccff;
+            box-shadow: 0 0 10px #00ccff;
         }
 
-        .btn:active {
-            transform: translateY(0);
+        .btn-danger {
+            background: #ff0066;
+            color: #fff;
         }
 
-        .search-container {
-            margin-bottom: 32px;
-            position: relative;
+        .btn-danger:hover {
+            background: #ff3366;
+            box-shadow: 0 0 10px #ff3366;
         }
 
-        .search-container::before {
-            content: '🔍';
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            color: var(--text-muted);
-            pointer-events: none;
+        .table-container {
+            overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
         }
 
-        .search-input {
-            width: 100%;
-            padding: 16px 20px 16px 50px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--border-primary);
-            color: var(--text-primary);
-            border-radius: var(--radius-lg);
-            font-size: 16px;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-md);
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), var(--shadow-lg);
-            background: var(--bg-tertiary);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .servers-table {
-            width: 100%;
-            background: var(--bg-secondary);
-            border-radius: var(--radius-xl);
-            overflow: hidden;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border-primary);
-            position: relative;
-        }
-
-        .servers-table::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
-            opacity: 0.3;
-        }
-
-        .servers-table table {
+        table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .servers-table th,
-        .servers-table td {
-            padding: 16px 20px;
+        th, td {
+            padding: 10px;
             text-align: left;
-            border-bottom: 1px solid var(--border-primary);
+            border-bottom: 1px solid #0066ff;
         }
 
-        .servers-table th {
-            background: var(--bg-tertiary);
-            font-weight: 700;
-            color: var(--accent-secondary);
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 20px;
+        th {
+            background: #002244;
+            color: #00ccff;
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
-        .servers-table tbody tr {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-        }
-
-        .servers-table tbody tr::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 3px;
-            background: var(--accent-primary);
-            transform: scaleY(0);
-            transition: transform 0.2s;
-        }
-
-        .servers-table tbody tr:hover {
-            background: var(--bg-tertiary);
-            cursor: pointer;
-        }
-
-        .servers-table tbody tr:hover::before {
-            transform: scaleY(1);
-        }
-
-        .server-row {
-            font-size: 14px;
-            color: var(--text-secondary);
+        tr:hover {
+            background: #002244;
         }
 
         .status-online {
-            color: var(--success);
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .status-online::before {
-            content: '●';
-            font-size: 10px;
+            color: #00ff00;
+            font-weight: bold;
         }
 
         .status-offline {
-            color: var(--error);
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
+            color: #ff0066;
+            font-weight: bold;
         }
 
-        .status-offline::before {
-            content: '●';
-            font-size: 10px;
-        }
-
-        .player-count {
-            color: var(--success);
-            font-weight: 700;
-            font-size: 15px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .player-count::before {
-            content: '👥';
-            font-size: 12px;
-        }
-
-        .server-details {
-            background: var(--bg-secondary);
-            padding: 32px;
-            border-radius: var(--radius-xl);
-            margin-top: 32px;
+        .token-modal {
             display: none;
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border-primary);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .server-details::before {
-            content: '';
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
         }
 
-        .server-details.active {
-            display: block;
-            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        .token-modal.active {
+            display: flex;
         }
 
-        .server-details h2 {
-            color: var(--text-primary);
-            font-size: 2rem;
-            margin-bottom: 32px;
-            font-weight: 700;
-            letter-spacing: -0.025em;
+        .modal-content {
+            background: #001133;
+            border: 2px solid #0066ff;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
         }
 
-        .server-details h3 {
-            color: var(--text-primary);
-            font-size: 1.25rem;
+        .modal-content h2 {
+            color: #0066ff;
             margin-bottom: 20px;
-            font-weight: 600;
-            letter-spacing: -0.025em;
         }
 
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            background: #000511;
+            border: 1px solid #0066ff;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 20px;
         }
 
-        .detail-item {
-            background: var(--bg-tertiary);
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-primary);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+        .error, .info {
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid;
         }
 
-        .detail-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
-            opacity: 0.3;
+        .error {
+            background: #330000;
+            border-color: #ff0066;
+            color: #ff6666;
         }
 
-        .detail-item:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-xl);
-            border-color: var(--accent-primary);
+        .info {
+            background: #001133;
+            border-color: #0066ff;
+            color: #00ccff;
         }
 
-        .detail-label {
-            color: var(--text-muted);
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
+        .team-status {
+            padding: 15px;
+            background: #002244;
+            border: 1px solid #0066ff;
+            margin-bottom: 20px;
+            text-align: center;
         }
 
-        .detail-value {
-            color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.4;
+        .team-status.online {
+            border-color: #00ff00;
+            color: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+
+        .team-status.offline {
+            border-color: #ff0066;
+            color: #ff0066;
+            box-shadow: 0 0 10px #ff0066;
         }
 
         .chart-container {
-            background: var(--bg-tertiary);
-            padding: 32px;
-            border-radius: var(--radius-xl);
-            margin-top: 32px;
-            border: 1px solid var(--border-primary);
-            box-shadow: var(--shadow-lg);
             position: relative;
-        }
-
-        .chart-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--accent-secondary), transparent);
-            opacity: 0.3;
+            height: 300px;
+            margin: 20px 0;
         }
 
         .loading {
             text-align: center;
-            padding: 64px;
-            color: var(--text-muted);
-            font-size: 16px;
-            font-weight: 500;
-            position: relative;
+            padding: 20px;
+            color: #00ccff;
         }
 
-        .loading::before {
-            content: '⏳';
-            display: block;
-            font-size: 32px;
-            margin-bottom: 16px;
-            animation: pulse 2s infinite;
-        }
-
-        .error {
-            background: linear-gradient(135deg, var(--error), #dc2626);
-            color: white;
-            padding: 20px 24px;
-            border-radius: var(--radius-lg);
-            margin-bottom: 32px;
-            font-weight: 600;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .error::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-        }
-
-        .refresh-info {
-            text-align: center;
-            color: var(--text-muted);
-            margin-top: 24px;
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: 0.025em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .refresh-info::before {
-            content: '🔄';
-            font-size: 14px;
-        }
-
-        .country-flag {
-            margin-right: 8px;
-            font-size: 16px;
-        }
-
-        .players-section {
-            margin-top: 32px;
-            background: var(--bg-tertiary);
-            padding: 24px;
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border-primary);
-        }
-
-        .players-section h3 {
-            color: var(--accent-secondary);
-            font-size: 1.25rem;
-            margin-bottom: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .players-section h3::before {
-            content: '👥';
-            font-size: 20px;
-        }
-
-        .players-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 16px;
-        }
-
-        .players-table th,
-        .players-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border-primary);
-        }
-
-        .players-table th {
-            background: var(--bg-card);
-            color: var(--text-muted);
-            font-size: 12px;
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-
-        .players-table tr:hover {
-            background: var(--bg-card);
-        }
-
-        .add-to-team-btn {
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .add-to-team-btn:hover {
-            background: linear-gradient(135deg, #059669, var(--success));
-            transform: translateY(-1px);
-        }
-
-        .add-to-team-btn:disabled {
-            background: var(--text-muted);
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .team-section {
-            margin-top: 32px;
-            background: var(--bg-secondary);
-            padding: 32px;
-            border-radius: var(--radius-xl);
-            box-shadow: var(--shadow-xl);
-            border: 1px solid var(--border-primary);
-            position: relative;
-        }
-
-        .team-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--success), transparent);
-        }
-
-        .team-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .team-title {
-            color: var(--text-primary);
-            font-size: 1.5rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .team-title::before {
-            content: '🎯';
-            font-size: 24px;
-        }
-
-        .team-status {
-            padding: 8px 16px;
-            border-radius: var(--radius-lg);
-            font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .team-status.online {
-            background: linear-gradient(135deg, var(--success), #059669);
-            color: white;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-        }
-
-        .team-status.offline {
-            background: linear-gradient(135deg, var(--error), #dc2626);
-            color: white;
-            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-        }
-
-        .team-list {
+        .server-info {
             display: grid;
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
 
-        .team-member {
-            background: var(--bg-tertiary);
-            padding: 16px 20px;
-            border-radius: var(--radius-md);
-            border: 1px solid var(--border-primary);
+        .info-card {
+            background: #002244;
+            padding: 15px;
+            border: 1px solid #0066ff;
+        }
+
+        .info-card h3 {
+            color: #00ccff;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .info-card p {
+            color: #00ff00;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .player-actions {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s ease;
+            gap: 10px;
         }
 
-        .team-member:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--accent-primary);
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8em;
         }
 
-        .team-member-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .team-member-name {
-            color: var(--text-primary);
-            font-weight: 600;
-            font-size: 16px;
-        }
-
-        .team-member-id {
-            color: var(--text-muted);
-            font-size: 12px;
-            font-family: 'SF Mono', 'Monaco', monospace;
-        }
-
-        .team-member-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+        .refresh-indicator {
             display: inline-block;
-        }
-
-        .status-indicator.online {
-            background: var(--success);
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-        }
-
-        .status-indicator.offline {
-            background: var(--text-muted);
-        }
-
-        .remove-btn {
-            background: linear-gradient(135deg, var(--error), #dc2626);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-
-        .remove-btn:hover {
-            background: linear-gradient(135deg, #dc2626, var(--error));
-            transform: translateY(-1px);
-        }
-
-        .empty-team {
-            text-align: center;
-            padding: 48px;
-            color: var(--text-muted);
-            font-size: 16px;
-        }
-
-        .empty-team::before {
-            content: '🎯';
-            display: block;
-            font-size: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        @keyframes slideUp {
-            from { 
-                opacity: 0; 
-                transform: translateY(20px); 
-            }
-            to { 
-                opacity: 1; 
-                transform: translateY(0); 
-            }
+            width: 10px;
+            height: 10px;
+            background: #00ff00;
+            border-radius: 50%;
+            margin-left: 10px;
+            animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px 16px;
-            }
-
-            .header h1 {
-                font-size: 2.5rem;
-            }
-
-            .header p {
-                font-size: 1rem;
-            }
-
-            .servers-table th,
-            .servers-table td {
-                padding: 12px 8px;
-                font-size: 13px;
-            }
-
-            .details-grid {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-
-            .detail-value {
-                font-size: 16px;
-            }
-
-            .token-input-container,
-            .server-details,
-            .chart-container {
-                padding: 24px 20px;
-            }
-
-            .search-input {
-                padding-left: 40px;
-            }
-
-            .search-container::before {
-                left: 16px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .servers-table {
-                border-radius: var(--radius-lg);
-            }
-
-            .servers-table th,
-            .servers-table td {
-                padding: 8px 4px;
-                font-size: 12px;
-            }
-
-            .detail-item {
-                padding: 16px;
-            }
-
-            .detail-value {
-                font-size: 14px;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚡ RUST COMMAND CENTER</h1>
-            <p>Elite server monitoring & team tracking system</p>
+            <h1>⚡ RUST SERVER DASHBOARD ⚡</h1>
+            <p>Advanced Player Tracking & Server Monitoring System</p>
         </div>
 
-        <div id="tokenSection" class="token-input-container" style="display: none;">
-            <div class="token-warning">
-                ⚠️ Paste your BattleMetrics personal access token (from https://www.battlemetrics.com/developers). It is sent only to your proxy — use a limited-scope token!
-            </div>
-            <input type="password" id="tokenInput" class="token-input" placeholder="BattleMetrics API Token...">
-            <button onclick="saveToken()" class="btn">Save Token</button>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('servers')">🖥️ Server Monitoring</div>
+            <div class="tab" onclick="switchTab('players')">👥 Player Tracking</div>
+            <div class="tab" onclick="switchTab('team')">🎯 My Team</div>
         </div>
 
-        <div id="mainContent" style="display: none;">
-            <div class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search servers by name or IP...">
-            </div>
-
-            <div id="errorContainer"></div>
-
-            <div class="servers-table">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Server Name</th>
-                            <th>IP:Port</th>
-                            <th>Players</th>
-                            <th>Status</th>
-                            <th>Rank</th>
-                            <th>Country</th>
-                            <th>Map</th>
-                        </tr>
-                    </thead>
-                    <tbody id="serversTableBody">
-                        <tr>
-                            <td colspan="7" class="loading">Loading servers...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="refresh-info">
-                Auto-refresh every 60 seconds • Last updated: <span id="lastUpdated">Never</span>
-            </div>
-
-            <div id="serverDetails" class="server-details">
-                <h2>Server Details</h2>
-                <div class="details-grid" id="detailsGrid"></div>
-                <div class="chart-container">
-                    <h3>Player Count History (24 hours)</h3>
-                    <canvas id="playerChart"></canvas>
+        <div id="servers-tab" class="tab-content active">
+            <div class="panel">
+                <h2>🖥️ Server List <span class="refresh-indicator"></span></h2>
+                <div class="search-box">
+                    <input type="text" id="server-search" placeholder="Search servers by name or IP..." onkeyup="filterServers()">
+                    <button class="btn" onclick="refreshServers()">🔄 Refresh</button>
                 </div>
-                <div class="players-section" id="playersSection" style="display: none;">
-                    <h3>Active Players</h3>
-                    <table class="players-table">
+                <div class="table-container">
+                    <table id="servers-table">
                         <thead>
                             <tr>
-                                <th>Player Name</th>
-                                <th>Steam ID</th>
+                                <th>Server Name</th>
+                                <th>IP:Port</th>
+                                <th>Players</th>
+                                <th>Status</th>
+                                <th>Rank</th>
+                                <th>Country</th>
+                                <th>Map</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
-                        <tbody id="playersTableBody">
+                        <tbody id="servers-tbody">
                             <tr>
-                                <td colspan="3" class="loading">Loading players...</td>
+                                <td colspan="8" class="loading">Loading servers...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
+        </div>
 
-            <div class="team-section" id="teamSection" style="display: none;">
-                <div class="team-header">
-                    <div class="team-title">My Team</div>
-                    <div class="team-status" id="teamStatus">Offline</div>
+        <div id="players-tab" class="tab-content">
+            <div class="panel">
+                <h2 id="selected-server-name">👥 Player Tracking - Select a Server</h2>
+                <div id="server-details" style="display: none;">
+                    <div class="server-info" id="server-info"></div>
+                    <div class="chart-container">
+                        <canvas id="player-history-chart"></canvas>
+                    </div>
+                    <h3>🎮 Active Players</h3>
+                    <div class="table-container">
+                        <table id="players-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>SteamID</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="players-tbody">
+                                <tr>
+                                    <td colspan="3" class="loading">Loading players...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="team-list" id="teamList">
-                    <div class="empty-team">No team members added yet. Add players from server details to build your team.</div>
+                <div id="no-server-selected" class="info">
+                    Please select a server from the Server Monitoring tab to view player details.
+                </div>
+            </div>
+        </div>
+
+        <div id="team-tab" class="tab-content">
+            <div class="panel">
+                <h2>🎯 My Team</h2>
+                <div class="team-status" id="team-status">
+                    Team Overall Status: Offline
+                </div>
+                <div class="table-container">
+                    <table id="team-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>SteamID</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="team-tbody">
+                            <tr>
+                                <td colspan="4" class="loading">No players added to team yet.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-danger" onclick="clearTeam()">🗑️ Clear Team</button>
+                    <button class="btn" onclick="refreshTeamStatus()">🔄 Refresh Status</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="token-modal" id="token-modal">
+        <div class="modal-content">
+            <h2>🔑 BattleMetrics API Token Required</h2>
+            <p style="color: #00ccff; margin-bottom: 15px;">
+                Paste your BattleMetrics personal access token (limited-scope only) — used only in proxy
+            </p>
+            <input type="password" id="token-input" placeholder="bm_token_...">
+            <button class="btn" onclick="saveToken()">Save Token</button>
+        </div>
+    </div>
+
     <script>
         let currentToken = localStorage.getItem('battlemetrics_token');
-        let servers = [];
         let selectedServer = null;
-        let playerChart = null;
-        let refreshInterval = null;
-        let myTeam = JSON.parse(localStorage.getItem('rustTeam') || '[]');
+        let playerHistoryChart = null;
+        let refreshIntervals = {};
 
-        // Initialize app
-        function init() {
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
             if (!currentToken) {
-                document.getElementById('tokenSection').style.display = 'block';
+                document.getElementById('token-modal').classList.add('active');
             } else {
-                document.getElementById('mainContent').style.display = 'block';
-                loadServers();
-                startAutoRefresh();
+                initializeApp();
             }
+        });
 
-            // Setup search
-            document.getElementById('searchInput').addEventListener('input', filterServers);
-            
-            // Show team section if team has members
-            if (myTeam.length > 0) {
-                document.getElementById('teamSection').style.display = 'block';
-                renderTeam();
-                updateTeamStatus();
+        function saveToken() {
+            const token = document.getElementById('token-input').value.trim();
+            if (token) {
+                currentToken = token;
+                localStorage.setItem('battlemetrics_token', token);
+                document.getElementById('token-modal').classList.remove('active');
+                initializeApp();
             }
         }
 
-        // Save API token
-        function saveToken() {
-            const token = document.getElementById('tokenInput').value.trim();
-            if (!token) {
-                showError('Please enter a valid API token');
-                return;
-            }
-
-            currentToken = token;
-            localStorage.setItem('battlemetrics_token', token);
-            document.getElementById('tokenSection').style.display = 'none';
-            document.getElementById('mainContent').style.display = 'block';
-            loadServers();
+        function initializeApp() {
+            refreshServers();
+            loadTeam();
             startAutoRefresh();
         }
 
-        // Load servers from BattleMetrics API
-        async function loadServers() {
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        async function apiCall(endpoint) {
             try {
-                const response = await fetch(`/api/proxy.js?url=https://api.battlemetrics.com/servers?filter[game]=rust&filter[status]=online&sort=-players&page[size]=50&include=playerHistory&token=${currentToken}`);
+                const response = await fetch(`/api/proxy?url=${encodeURIComponent(endpoint)}&token=${currentToken}`);
+                const data = await response.json();
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    throw new Error(data.error || `HTTP ${response.status}`);
                 }
-
-                const data = await response.json();
-                servers = data.data || [];
-                renderServersTable();
-                updateLastUpdated();
-                clearError();
+                
+                return data;
             } catch (error) {
-                console.error('Error loading servers:', error);
-                showError(`Failed to load servers: ${error.message}`);
+                console.error('API Error:', error);
+                throw error;
             }
         }
 
-        // Render servers table
-        function renderServersTable() {
-            const tbody = document.getElementById('serversTableBody');
+        async function refreshServers() {
+            try {
+                const data = await apiCall('https://api.battlemetrics.com/servers?filter[game]=rust&filter[status]=online&sort=-players&page[size]=50');
+                displayServers(data.data);
+            } catch (error) {
+                document.getElementById('servers-tbody').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="error">Error loading servers: ${error.message}</td>
+                    </tr>
+                `;
+            }
+        }
+
+        function displayServers(servers) {
+            const tbody = document.getElementById('servers-tbody');
             
-            if (servers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="loading">No servers found</td></tr>';
+            if (!servers || servers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="info">No servers found.</td></tr>';
                 return;
             }
 
             tbody.innerHTML = servers.map(server => {
                 const attributes = server.attributes;
-                const players = attributes.players || 0;
-                const maxPlayers = attributes.maxPlayers || 0;
-                const status = attributes.status || 'unknown';
-                const rank = attributes.rank || 'N/A';
-                const country = attributes.country || 'Unknown';
-                const map = attributes.details?.map || 'Unknown';
-                const ip = attributes.ip || 'Unknown';
-                const port = attributes.port || 'Unknown';
-                const name = attributes.name || 'Unknown Server';
-
+                const ipPort = `${attributes.ip}:${attributes.port}`;
+                const players = `${attributes.players}/${attributes.maxPlayers}`;
+                const status = attributes.status === 'online' ? 
+                    '<span class="status-online">ONLINE</span>' : 
+                    '<span class="status-offline">OFFLINE</span>';
+                
                 return `
-                    <tr class="server-row" onclick="showServerDetails('${server.id}')">
-                        <td>${escapeHtml(name)}</td>
-                        <td>${ip}:${port}</td>
-                        <td><span class="player-count">${players}/${maxPlayers}</span></td>
-                        <td><span class="status-${status}">${status}</span></td>
-                        <td>${rank}</td>
-                        <td>${country}</td>
-                        <td>${escapeHtml(map)}</td>
+                    <tr>
+                        <td>${attributes.name}</td>
+                        <td>${ipPort}</td>
+                        <td>${players}</td>
+                        <td>${status}</td>
+                        <td>${attributes.rank || 'N/A'}</td>
+                        <td>${attributes.country || 'N/A'}</td>
+                        <td>${attributes.map || 'N/A'}</td>
+                        <td>
+                            <button class="btn btn-small" onclick="selectServer('${server.id}', '${attributes.name}')">
+                                View Players
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
         }
 
-        // Filter servers based on search
         function filterServers() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const filteredServers = servers.filter(server => {
-                const attributes = server.attributes;
-                const name = (attributes.name || '').toLowerCase();
-                const ip = (attributes.ip || '').toLowerCase();
-                return name.includes(searchTerm) || ip.includes(searchTerm);
+            const searchTerm = document.getElementById('server-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#servers-tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
+        }
 
-            const tbody = document.getElementById('serversTableBody');
-            if (filteredServers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="loading">No servers found matching your search</td></tr>';
-                return;
-            }
+        async function selectServer(serverId, serverName) {
+            selectedServer = { id: serverId, name: serverName };
+            
+            // Switch to players tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('players-tab').classList.add('active');
+            
+            // Update UI
+            document.getElementById('selected-server-name').textContent = `👥 Player Tracking - ${serverName}`;
+            document.getElementById('server-details').style.display = 'block';
+            document.getElementById('no-server-selected').style.display = 'none';
+            
+            // Load server details and players
+            await loadServerDetails(serverId);
+            await loadServerPlayers(serverId);
+            await loadPlayerHistory(serverId);
+        }
 
-            tbody.innerHTML = filteredServers.map(server => {
+        async function loadServerDetails(serverId) {
+            try {
+                const data = await apiCall(`https://api.battlemetrics.com/servers/${serverId}`);
+                const server = data.data;
                 const attributes = server.attributes;
-                const players = attributes.players || 0;
-                const maxPlayers = attributes.maxPlayers || 0;
-                const status = attributes.status || 'unknown';
-                const rank = attributes.rank || 'N/A';
-                const country = attributes.country || 'Unknown';
-                const map = attributes.details?.map || 'Unknown';
-                const ip = attributes.ip || 'Unknown';
-                const port = attributes.port || 'Unknown';
-                const name = attributes.name || 'Unknown Server';
+                
+                document.getElementById('server-info').innerHTML = `
+                    <div class="info-card">
+                        <h3>Rank</h3>
+                        <p>#${attributes.rank || 'N/A'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Map</h3>
+                        <p>${attributes.map || 'N/A'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Country</h3>
+                        <p>${attributes.country || 'N/A'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Version</h3>
+                        <p>${attributes.version || 'N/A'}</p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Status</h3>
+                        <p class="${attributes.status === 'online' ? 'status-online' : 'status-offline'}">
+                            ${attributes.status.toUpperCase()}
+                        </p>
+                    </div>
+                    <div class="info-card">
+                        <h3>Players</h3>
+                        <p>${attributes.players}/${attributes.maxPlayers}</p>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error loading server details:', error);
+            }
+        }
 
-                return `
-                    <tr class="server-row" onclick="showServerDetails('${server.id}')">
-                        <td>${escapeHtml(name)}</td>
-                        <td>${ip}:${port}</td>
-                        <td><span class="player-count">${players}/${maxPlayers}</span></td>
-                        <td><span class="status-${status}">${status}</span></td>
-                        <td>${rank}</td>
-                        <td>${country}</td>
-                        <td>${escapeHtml(map)}</td>
+        async function loadServerPlayers(serverId) {
+            const tbody = document.getElementById('players-tbody');
+            
+            try {
+                const data = await apiCall(`https://api.battlemetrics.com/servers/${serverId}?include=player`);
+                
+                if (!data.included || data.included.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="info">
+                                Active player list not available (requires server tracking/RCON or recent data)
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                const players = data.included.filter(item => item.type === 'player');
+                
+                tbody.innerHTML = players.map(player => {
+                    const attributes = player.attributes;
+                    const steamId = attributes.identifiers?.find(id => id.startsWith('steam:')) || 'N/A';
+                    
+                    return `
+                        <tr>
+                            <td>${attributes.name}</td>
+                            <td>${steamId}</td>
+                            <td>
+                                <button class="btn btn-small" onclick="addToTeam('${player.id}', '${attributes.name}', '${steamId}')">
+                                    Add to Team
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+            } catch (error) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="error">Error loading players: ${error.message}</td>
                     </tr>
                 `;
-            }).join('');
+            }
         }
 
-        // Show server details
-        async function showServerDetails(serverId) {
-            selectedServer = servers.find(s => s.id === serverId);
-            if (!selectedServer) return;
-
-            const detailsContainer = document.getElementById('serverDetails');
-            const detailsGrid = document.getElementById('detailsGrid');
-            
-            const attributes = selectedServer.attributes;
-            
-            // Render basic details
-            detailsGrid.innerHTML = `
-                <div class="detail-item">
-                    <div class="detail-label">Server Name</div>
-                    <div class="detail-value">${escapeHtml(attributes.name || 'Unknown')}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">IP Address</div>
-                    <div class="detail-value">${attributes.ip || 'Unknown'}:${attributes.port || 'Unknown'}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Players</div>
-                    <div class="detail-value">${attributes.players || 0}/${attributes.maxPlayers || 0}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value status-${attributes.status || 'unknown'}">${attributes.status || 'Unknown'}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Rank</div>
-                    <div class="detail-value">${attributes.rank || 'N/A'}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Country</div>
-                    <div class="detail-value">${attributes.country || 'Unknown'}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Map</div>
-                    <div class="detail-value">${escapeHtml(attributes.details?.map || 'Unknown')}</div>
-                </div>
-                <div class="detail-item">
-                    <div class="detail-label">Version</div>
-                    <div class="detail-value">${attributes.details?.version || 'Unknown'}</div>
-                </div>
-            `;
-
-            detailsContainer.classList.add('active');
-            
-            // Load player history chart
-            await loadPlayerHistory(serverId);
-            
-            // Load active players
-            await loadActivePlayers(serverId);
+        async function loadPlayerHistory(serverId) {
+            try {
+                const data = await apiCall(`https://api.battlemetrics.com/servers/${serverId}/player-history?ranges=last24h`);
+                
+                if (!data.data || data.data.length === 0) {
+                    return;
+                }
+                
+                const historyData = data.data[0].attributes.values;
+                const labels = historyData.map((_, index) => {
+                    const hour = new Date(Date.now() - (23 - index) * 60 * 60 * 1000);
+                    return hour.getHours() + ':00';
+                });
+                
+                const ctx = document.getElementById('player-history-chart').getContext('2d');
+                
+                if (playerHistoryChart) {
+                    playerHistoryChart.destroy();
+                }
+                
+                playerHistoryChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Players',
+                            data: historyData,
+                            borderColor: '#0066ff',
+                            backgroundColor: 'rgba(0, 102, 255, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#00ccff'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#00ccff' },
+                                grid: { color: '#003366' }
+                            },
+                            y: {
+                                ticks: { color: '#00ccff' },
+                                grid: { color: '#003366' }
+                            }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading player history:', error);
+            }
         }
 
-        // Add player to team
         function addToTeam(playerId, playerName, steamId) {
-            // Check if already in team
-            if (myTeam.some(member => member.id === playerId)) {
+            let team = JSON.parse(localStorage.getItem('my_team') || '[]');
+            
+            // Check if player already in team
+            if (team.find(p => p.id === playerId)) {
+                alert('Player already in team!');
                 return;
             }
-
-            const newMember = {
+            
+            team.push({
                 id: playerId,
                 name: playerName,
                 steamId: steamId,
                 status: 'unknown'
-            };
-
-            myTeam.push(newMember);
-            localStorage.setItem('rustTeam', JSON.stringify(myTeam));
+            });
             
-            // Show team section
-            document.getElementById('teamSection').style.display = 'block';
+            localStorage.setItem('my_team', JSON.stringify(team));
+            loadTeam();
             
-            // Re-render team and update status
-            renderTeam();
-            updateTeamStatus();
-            
-            // Update players table to show button as disabled
-            if (selectedServer) {
-                loadActivePlayers(selectedServer.id);
-            }
+            // Switch to team tab
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab')[2].classList.add('active');
+            document.getElementById('team-tab').classList.add('active');
         }
 
-        // Remove player from team
-        function removeFromTeam(playerId) {
-            myTeam = myTeam.filter(member => member.id !== playerId);
-            localStorage.setItem('rustTeam', JSON.stringify(myTeam));
+        function loadTeam() {
+            const team = JSON.parse(localStorage.getItem('my_team') || '[]');
+            const tbody = document.getElementById('team-tbody');
             
-            renderTeam();
-            updateTeamStatus();
-            
-            // Hide team section if empty
-            if (myTeam.length === 0) {
-                document.getElementById('teamSection').style.display = 'none';
-            }
-            
-            // Update players table if showing
-            if (selectedServer) {
-                loadActivePlayers(selectedServer.id);
-            }
-        }
-
-        // Render team list
-        function renderTeam() {
-            const teamList = document.getElementById('teamList');
-            
-            if (myTeam.length === 0) {
-                teamList.innerHTML = '<div class="empty-team">No team members added yet. Add players from server details to build your team.</div>';
+            if (team.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="loading">No players added to team yet.</td></tr>';
+                updateTeamStatus(false);
                 return;
             }
-
-            teamList.innerHTML = myTeam.map(member => `
-                <div class="team-member">
-                    <div class="team-member-info">
-                        <div>
-                            <div class="team-member-name">${escapeHtml(member.name)}</div>
-                            <div class="team-member-id">ID: ${member.id}</div>
-                        </div>
-                    </div>
-                    <div class="team-member-status">
-                        <span class="status-indicator ${member.status}"></span>
-                        <span>${member.status === 'online' ? 'Online' : 'Offline'}</span>
-                        <button class="remove-btn" onclick="removeFromTeam('${member.id}')">Remove</button>
-                    </div>
-                </div>
+            
+            tbody.innerHTML = team.map(player => `
+                <tr>
+                    <td>${player.name}</td>
+                    <td>${player.steamId}</td>
+                    <td id="status-${player.id}" class="${player.status === 'online' ? 'status-online' : player.status === 'offline' ? 'status-offline' : ''}">
+                        ${player.status === 'online' ? 'ONLINE' : player.status === 'offline' ? 'OFFLINE' : 'CHECKING...'}
+                    </td>
+                    <td>
+                        <button class="btn btn-danger btn-small" onclick="removeFromTeam('${player.id}')">
+                            Remove
+                        </button>
+                    </td>
+                </tr>
             `).join('');
+            
+            refreshTeamStatus();
         }
 
-        // Update team member statuses
-        async function updateTeamStatus() {
-            if (myTeam.length === 0) return;
-
-            let onlineCount = 0;
-
-            // Update each team member's status
-            for (const member of myTeam) {
+        async function refreshTeamStatus() {
+            const team = JSON.parse(localStorage.getItem('my_team') || '[]');
+            
+            if (team.length === 0) return;
+            
+            let anyOnline = false;
+            
+            for (const player of team) {
                 try {
-                    const response = await fetch(`/api/proxy.js?url=https://api.battlemetrics.com/players/${member.id}?include=server&token=${currentToken}`);
+                    const data = await apiCall(`https://api.battlemetrics.com/players/${player.id}?include=server`);
+                    const playerData = data.data;
                     
-                    if (response.ok) {
-                        const data = await response.json();
-                        const server = data.included?.find(item => item.type === 'server');
-                        
-                        // Player is online if they have an active server
-                        member.status = server ? 'online' : 'offline';
-                        if (member.status === 'online') {
-                            onlineCount++;
-                        }
-                    } else {
-                        member.status = 'offline';
+                    // Check if player is online by looking for active server relationships
+                    const isOnline = data.included && data.included.some(item => 
+                        item.type === 'server' && item.attributes.status === 'online'
+                    );
+                    
+                    player.status = isOnline ? 'online' : 'offline';
+                    if (isOnline) anyOnline = true;
+                    
+                    // Update UI
+                    const statusEl = document.getElementById(`status-${player.id}`);
+                    if (statusEl) {
+                        statusEl.className = isOnline ? 'status-online' : 'status-offline';
+                        statusEl.textContent = isOnline ? 'ONLINE' : 'OFFLINE';
                     }
+                    
                 } catch (error) {
-                    console.error('Error checking player status:', error);
-                    member.status = 'offline';
-                }
-            }
-
-            // Update team status indicator
-            const teamStatusElement = document.getElementById('teamStatus');
-            if (onlineCount > 0) {
-                teamStatusElement.textContent = `Online (${onlineCount}/${myTeam.length})`;
-                teamStatusElement.className = 'team-status online';
-            } else {
-                teamStatusElement.textContent = 'Offline';
-                teamStatusElement.className = 'team-status offline';
-            }
-
-            // Re-render team to show updated statuses
-            renderTeam();
-        }
-
-        // Load player history for chart
-        async function loadPlayerHistory(serverId) {
-            try {
-                const response = await fetch(`/api/proxy.js?url=https://api.battlemetrics.com/servers/${serverId}/relationships/player-history?ranges=last24h&token=${currentToken}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                renderPlayerChart(data.data || []);
-            } catch (error) {
-                console.error('Error loading player history:', error);
-                // Don't show error for chart, just fail silently
-            }
-        }
-
-        // Render player count chart
-        function renderPlayerChart(historyData) {
-            const ctx = document.getElementById('playerChart').getContext('2d');
-            
-            // Destroy existing chart if it exists
-            if (playerChart) {
-                playerChart.destroy();
-            }
-
-            // Process history data
-            const labels = historyData.map(point => {
-                const date = new Date(point.attributes.timestamp);
-                return date.toLocaleTimeString();
-            });
-            
-            const data = historyData.map(point => point.attributes.value || 0);
-
-            playerChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Player Count',
-                        data: data,
-                        borderColor: '#60a5fa',
-                        backgroundColor: 'rgba(96, 165, 250, 0.15)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: '#334155'
-                            },
-                            ticks: {
-                                color: '#9ca3af'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: '#334155'
-                            },
-                            ticks: {
-                                color: '#9ca3af',
-                                maxRotation: 45,
-                                minRotation: 45
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#9ca3af'
-                            }
-                        }
+                    player.status = 'unknown';
+                    const statusEl = document.getElementById(`status-${player.id}`);
+                    if (statusEl) {
+                        statusEl.className = '';
+                        statusEl.textContent = 'ERROR';
                     }
                 }
-            });
-        }
-
-        // Start auto-refresh
-        function startAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
             }
             
-            refreshInterval = setInterval(() => {
-                loadServers();
-                if (myTeam.length > 0) {
-                    updateTeamStatus();
+            localStorage.setItem('my_team', JSON.stringify(team));
+            updateTeamStatus(anyOnline);
+        }
+
+        function updateTeamStatus(anyOnline) {
+            const statusEl = document.getElementById('team-status');
+            if (anyOnline) {
+                statusEl.textContent = 'Team Overall Status: Online';
+                statusEl.className = 'team-status online';
+            } else {
+                statusEl.textContent = 'Team Overall Status: Offline';
+                statusEl.className = 'team-status offline';
+            }
+        }
+
+        function removeFromTeam(playerId) {
+            let team = JSON.parse(localStorage.getItem('my_team') || '[]');
+            team = team.filter(p => p.id !== playerId);
+            localStorage.setItem('my_team', JSON.stringify(team));
+            loadTeam();
+        }
+
+        function clearTeam() {
+            if (confirm('Are you sure you want to clear your entire team?')) {
+                localStorage.removeItem('my_team');
+                loadTeam();
+            }
+        }
+
+        function startAutoRefresh() {
+            // Refresh servers every 60 seconds
+            refreshIntervals.servers = setInterval(() => {
+                if (document.getElementById('servers-tab').classList.contains('active')) {
+                    refreshServers();
                 }
-            }, 60000); // 60 seconds
+            }, 60000);
+            
+            // Refresh team status every 60 seconds
+            refreshIntervals.team = setInterval(() => {
+                if (document.getElementById('team-tab').classList.contains('active')) {
+                    refreshTeamStatus();
+                }
+            }, 60000);
         }
 
-        // Update last updated time
-        function updateLastUpdated() {
-            const now = new Date();
-            document.getElementById('lastUpdated').textContent = now.toLocaleTimeString();
-        }
-
-        // Show error message
-        function showError(message) {
-            const errorContainer = document.getElementById('errorContainer');
-            errorContainer.innerHTML = `<div class="error">${message}</div>`;
-        }
-
-        // Clear error message
-        function clearError() {
-            document.getElementById('errorContainer').innerHTML = '';
-        }
-
-        // Escape HTML to prevent XSS
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', init);
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            Object.values(refreshIntervals).forEach(interval => clearInterval(interval));
+        });
     </script>
 </body>
 </html>
