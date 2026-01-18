@@ -32,16 +32,6 @@ module.exports = async (req, res) => {
     if (!token) {
         res.status(400).json({ error: 'Token parameter is required' });
         return;
-    }
-    
-    // Validate that the URL is a BattleMetrics API endpoint
-if (!url.startsWith('https://api.battlemetrics.com/')) {
-    return res.status(400).json({
-        error: 'Invalid URL',
-        message: 'Only BattleMetrics API URLs are allowed'
-    });
-}
-    }
     
     // Validate token format (basic check)
     if (!token.startsWith('bm_token_')) {
