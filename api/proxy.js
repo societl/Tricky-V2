@@ -1,127 +1,152 @@
-// Vercel serverless function to proxy BattleMetrics API requests
-// This handles CORS and keeps the API token secure on the server side
+// BattleMetrics API Proxy for Vercel Serverless Functions
+// Handles secure API calls with token management and CORS headers
 
-export default async function handler(req, res) {
-    // Set CORS headers for all responses
+const https = require('https');
+
+module.exports = async (req, res) => {
+    // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-    // Handle preflight OPTIONS requests
+    
+    // Handle preflight requests
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.status(200).end();
+        return;
     }
-
+    
     // Only allow GET requests
     if (req.method !== 'GET') {
-        return res.status(405).json({ 
-            error: 'Method not allowed',
-            message: 'Only GET requests are supported'
-        });
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
     }
-
+    
+    const { url, token } = req.query;
+    
+    // Validate parameters
+    if (!url) {
+        res.status(400).json({ error: 'URL parameter is required' });
+        return;
+    }
+    
+    if (!token) {
+        res.status(400).json({ error: 'Token parameter is required' });
+        return;
+    }
+    
+    // Validate that URL is BattleMetrics API
+    if (!url.startsWith('https://api.battlemetrics.com/')) {
+        res.status(400).json({ error: 'Only BattleMetrics API URLs are allowed' });
+        return;
+    }
+    
+    // Validate token format (basic check)
+    if (!token.startsWith('bm_token_')) {
+        res.status(400).json({ error: 'Invalid token format' });
+        return;
+    }
+    
     try {
-        const { url, token } = req.query;
-
-        // Validate required parameters
-        if (!url) {
-            return res.status(400).json({
-                error: 'Missing required parameter',
-                message: 'url parameter is required'
+        const result = await makeApiRequest(url, token);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Proxy error:', error);
+        
+        // Handle different error types
+        if (error.response) {
+            // API responded with error status
+            const statusCode = error.response.statusCode || 500;
+            let errorMessage = 'API request failed';
+            
+            // Try to parse error message from BattleMetrics
+            if (error.data && error.data.errors && error.data.errors.length > 0) {
+                errorMessage = error.data.errors[0].title || errorMessage;
+            } else if (error.data && error.data.error) {
+                errorMessage = error.data.error;
+            }
+            
+            res.status(statusCode).json({ 
+                error: errorMessage,
+                status: statusCode,
+                url: url
+            });
+        } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+            res.status(503).json({ 
+                error: 'Service unavailable - cannot connect to BattleMetrics API',
+                code: error.code
+            });
+        } else if (error.code === 'ETIMEDOUT') {
+            res.status(504).json({ 
+                error: 'Request timeout - BattleMetrics API did not respond in time',
+                code: error.code
+            });
+        } else {
+            res.status(500).json({ 
+                error: 'Internal server error',
+                message: error.message
             });
         }
+    }
+};
 
-        if (!token) {
-            return res.status(400).json({
-                error: 'Missing required parameter',
-                message: 'token parameter is required'
-            });
-        }
-
-        // Validate that the URL is a BattleMetrics API endpoint
-        if (!url.startsWith('https://api.battlemetrics.com/')) {
-            return res.status(400).json({
-                error: 'Invalid URL',
-                message: 'Only BattleMetrics API URLs are allowed'
-            });
-        }
-
-        console.log(`Proxying request to: ${url}`);
-
-        // Make request to BattleMetrics API
-        const response = await fetch(url, {
+function makeApiRequest(url, token) {
+    return new Promise((resolve, reject) => {
+        const urlObj = new URL(url);
+        const options = {
+            hostname: urlObj.hostname,
+            port: urlObj.port || 443,
+            path: urlObj.pathname + urlObj.search,
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
+                'User-Agent': 'RustServerDashboard/1.0',
                 'Accept': 'application/json',
-                'User-Agent': 'Rust-Server-Dashboard/1.0'
-            }
-        });
-
-        // Get response data
-        const responseText = await response.text();
+                'Content-Type': 'application/json'
+            },
+            timeout: 10000 // 10 second timeout
+        };
         
-        // Set response headers
-        res.status(response.status);
-        res.setHeader('Content-Type', 'application/json');
-        
-        // Handle different response scenarios
-        if (!response.ok) {
-            // BattleMetrics API returned an error
-            console.error(`BattleMetrics API error: ${response.status} ${response.statusText}`);
+        const req = https.request(options, (res) => {
+            let data = '';
             
-            let errorData;
-            try {
-                errorData = JSON.parse(responseText);
-            } catch (e) {
-                errorData = { error: 'Unknown API error', message: responseText };
-            }
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
             
-            return res.json({
-                error: 'API request failed',
-                status: response.status,
-                statusText: response.statusText,
-                details: errorData
+            res.on('end', () => {
+                try {
+                    const parsedData = JSON.parse(data);
+                    
+                    if (res.statusCode >= 200 && res.statusCode < 300) {
+                        resolve(parsedData);
+                    } else {
+                        const error = new Error(`HTTP ${res.statusCode}`);
+                        error.response = res;
+                        error.data = parsedData;
+                        error.statusCode = res.statusCode;
+                        reject(error);
+                    }
+                } catch (parseError) {
+                    const error = new Error('Invalid JSON response from API');
+                    error.response = res;
+                    error.data = data;
+                    error.statusCode = res.statusCode;
+                    reject(error);
+                }
             });
-        }
-
-        // Successful response - parse and return the data
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (e) {
-            console.error('Failed to parse API response as JSON:', e);
-            return res.status(500).json({
-                error: 'Invalid API response',
-                message: 'BattleMetrics API returned invalid JSON'
-            });
-        }
-
-        console.log(`Successfully proxied response from: ${url}`);
-        return res.json(data);
-
-    } catch (error) {
-        console.error('Proxy function error:', error);
-        
-        // Handle different types of errors
-        if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-            return res.status(503).json({
-                error: 'Service unavailable',
-                message: 'Unable to connect to BattleMetrics API'
-            });
-        }
-        
-        if (error.name === 'AbortError') {
-            return res.status(408).json({
-                error: 'Request timeout',
-                message: 'Request to BattleMetrics API timed out'
-            });
-        }
-
-        // Generic error
-        return res.status(500).json({
-            error: 'Internal server error',
-            message: 'An unexpected error occurred while processing your request'
         });
-    }
+        
+        req.on('error', (error) => {
+            reject(error);
+        });
+        
+        req.on('timeout', () => {
+            req.destroy();
+            const error = new Error('Request timeout');
+            error.code = 'ETIMEDOUT';
+            reject(error);
+        });
+        
+        req.end();
+    });
 }
