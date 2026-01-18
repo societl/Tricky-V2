@@ -34,10 +34,13 @@ module.exports = async (req, res) => {
         return;
     }
     
-    // Validate that URL is BattleMetrics API
-    if (!url.startsWith('https://api.battlemetrics.com/')) {
-        res.status(400).json({ error: 'Only BattleMetrics API URLs are allowed' });
-        return;
+    // Validate that the URL is a BattleMetrics API endpoint
+if (!url.startsWith('https://api.battlemetrics.com/')) {
+    return res.status(400).json({
+        error: 'Invalid URL',
+        message: 'Only BattleMetrics API URLs are allowed'
+    });
+}
     }
     
     // Validate token format (basic check)
