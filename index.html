@@ -910,14 +910,13 @@
                         <thead>
                             <tr>
                                 <th>Player Name</th>
-                                <th>Player ID</th>
                                 <th>Steam ID</th>
                                 <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="playersTableBody">
                             <tr>
-                                <td colspan="4" class="loading">Loading players...</td>
+                                <td colspan="3" class="loading">Loading players...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1131,76 +1130,6 @@
             
             // Load active players
             await loadActivePlayers(serverId);
-        }
-
-        // Load active players for a server
-        async function loadActivePlayers(serverId) {
-            const playersSection = document.getElementById('playersSection');
-            const playersTableBody = document.getElementById('playersTableBody');
-            
-            try {
-                playersSection.style.display = 'block';
-                playersTableBody.innerHTML = '<tr><td colspan="4" class="loading">Loading players...</td></tr>';
-                
-                const currentTime = new Date().toISOString();
-                const response = await fetch(`/api/proxy.js?url=https://api.battlemetrics.com/servers/${serverId}/relationships/sessions?include=player,identifier&filter[at]=${encodeURIComponent(currentTime)}&token=${currentToken}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-                const sessions = data.data || [];
-                const included = data.included || [];
-                
-                // Extract players and their identifiers
-                const players = sessions.map(session => {
-                    const player = included.find(item => item.type === 'player' && item.id === session.relationships.player.data.id);
-                    const identifiers = included.filter(item => item.type === 'identifier' && item.relationships.player?.data?.id === session.relationships.player.data.id);
-                    
-                    if (!player) return null;
-                    
-                    const steamIdentifier = identifiers.find(id => id.attributes.type === 'steamID');
-                    
-                    return {
-                        id: player.id,
-                        name: player.attributes.name || 'Unknown',
-                        steamId: steamIdentifier ? steamIdentifier.attributes.identifier : 'N/A'
-                    };
-                }).filter(Boolean);
-
-                renderPlayersTable(players);
-            } catch (error) {
-                console.error('Error loading active players:', error);
-                playersTableBody.innerHTML = '<tr><td colspan="4" class="loading">Failed to load players</td></tr>';
-            }
-        }
-
-        // Render players table
-        function renderPlayersTable(players) {
-            const playersTableBody = document.getElementById('playersTableBody');
-            
-            if (players.length === 0) {
-                playersTableBody.innerHTML = '<tr><td colspan="4" class="loading">No active players found</td></tr>';
-                return;
-            }
-
-            playersTableBody.innerHTML = players.map(player => {
-                const isInTeam = myTeam.some(teamMember => teamMember.id === player.id);
-                
-                return `
-                    <tr>
-                        <td>${escapeHtml(player.name)}</td>
-                        <td><code style="color: var(--text-muted); font-size: 12px;">${player.id}</code></td>
-                        <td><code style="color: var(--text-muted); font-size: 12px;">${player.steamId}</code></td>
-                        <td>
-                            <button class="add-to-team-btn" onclick="addToTeam('${player.id}', '${escapeHtml(player.name)}', '${player.steamId}')" ${isInTeam ? 'disabled' : ''}>
-                                ${isInTeam ? 'In Team' : 'Add to Team'}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
         }
 
         // Add player to team
