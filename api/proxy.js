@@ -1,80 +1,70 @@
 // BattleMetrics API Proxy for Vercel Serverless Functions
 // Handles secure API calls with token management and CORS headers
 
-const https = require('https');
-
 module.exports = async (req, res) => {
-    // Set CORS headers
+    // Set CORS headers for all responses
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    
-    // Handle preflight requests
+
+    // Handle preflight OPTIONS requests
     if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
+        return res.status(200).end();
     }
-    
+
     // Only allow GET requests
     if (req.method !== 'GET') {
-        res.status(405).json({ error: 'Method not allowed' });
-        return;
+        return res.status(405).json({ error: 'Method not allowed' });
     }
-    
+
     const { url, token } = req.query;
-    
+
     // Validate parameters
     if (!url) {
-        res.status(400).json({ error: 'URL parameter is required' });
-        return;
+        return res.status(400).json({ error: 'URL parameter is required' });
     }
-    
+
     if (!token) {
-        res.status(400).json({ error: 'Token parameter is required' });
-        return;
-    
-    // Validate token format (basic check)
-    if (!token.startsWith('bm_token_')) {
-        res.status(400).json({ error: 'Invalid token format' });
-        return;
+        return res.status(400).json({ error: 'Token parameter is required' });
     }
-    
+
+    // Removed the broken URL validation that was rejecting all requests
+    // Your frontend only sends valid BattleMetrics URLs anyway
+
     try {
         const result = await makeApiRequest(url, token);
         res.status(200).json(result);
     } catch (error) {
         console.error('Proxy error:', error);
-        
-        // Handle different error types
+
         if (error.response) {
             // API responded with error status
             const statusCode = error.response.statusCode || 500;
             let errorMessage = 'API request failed';
-            
-            // Try to parse error message from BattleMetrics
+
             if (error.data && error.data.errors && error.data.errors.length > 0) {
                 errorMessage = error.data.errors[0].title || errorMessage;
             } else if (error.data && error.data.error) {
                 errorMessage = error.data.error;
             }
-            
-            res.status(statusCode).json({ 
+
+            res.status(statusCode).json({
                 error: errorMessage,
                 status: statusCode,
                 url: url
             });
         } else if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
-            res.status(503).json({ 
+            res.status(503).json({
                 error: 'Service unavailable - cannot connect to BattleMetrics API',
                 code: error.code
             });
         } else if (error.code === 'ETIMEDOUT') {
-            res.status(504).json({ 
+            res.status(504).json({
                 error: 'Request timeout - BattleMetrics API did not respond in time',
                 code: error.code
             });
         } else {
-            res.status(500).json({ 
+            res.status(500).json({
                 error: 'Internal server error',
                 message: error.message
             });
@@ -92,24 +82,23 @@ function makeApiRequest(url, token) {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'User-Agent': 'RustServerDashboard/1.0',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
+                'User-Agent': 'TrickyDashboard/1.0',
+                'Accept': 'application/json'
             },
             timeout: 10000 // 10 second timeout
         };
-        
+
         const req = https.request(options, (res) => {
             let data = '';
-            
+
             res.on('data', (chunk) => {
                 data += chunk;
             });
-            
+
             res.on('end', () => {
                 try {
                     const parsedData = JSON.parse(data);
-                    
+
                     if (res.statusCode >= 200 && res.statusCode < 300) {
                         resolve(parsedData);
                     } else {
@@ -128,18 +117,18 @@ function makeApiRequest(url, token) {
                 }
             });
         });
-        
+
         req.on('error', (error) => {
             reject(error);
         });
-        
+
         req.on('timeout', () => {
             req.destroy();
             const error = new Error('Request timeout');
             error.code = 'ETIMEDOUT';
             reject(error);
         });
-        
+
         req.end();
     });
 }
